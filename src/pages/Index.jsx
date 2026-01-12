@@ -14,6 +14,7 @@ const Index = () => {
     category_id: "",
     status: false,
     thumbnail: null,
+    price: "",
   });
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -61,6 +62,7 @@ const Index = () => {
       category_id: "",
       status: false,
       thumbnail: null,
+      price: "",
     });
     setPreview(null);
     setModalOpen(true);
@@ -74,6 +76,7 @@ const Index = () => {
       category_id: product.category_id || "",
       status: product.status === 1,
       thumbnail: null,
+      price: product.price ?? "",
     });
     setPreview(product.thumbnail ? 'http://127.0.0.1:8000/storage/' + product.thumbnail : null);
     setModalOpen(true);
@@ -88,6 +91,7 @@ const Index = () => {
       category_id: "",
       status: false,
       thumbnail: null,
+      price: "",
     });
     setPreview(null);
   };
@@ -128,6 +132,7 @@ const Index = () => {
     formPayload.append("name", formData.name);
     formPayload.append("category_id", formData.category_id);
     formPayload.append("status", formData.status ? 1 : 0);
+    formPayload.append("price", formData.price);
     if (formData.thumbnail) {
       formPayload.append("thumbnail", formData.thumbnail);
     }
@@ -210,6 +215,7 @@ const Index = () => {
                   <th className="border p-2 text-center">Thumbnail</th>
                   <th className="border p-2 text-center">Name</th>
                   <th className="border p-2 text-center">Slug</th>
+                  <th className="border p-2 text-center">Price</th>
                   <th className="border p-2 text-center">Status</th>
                   <th className="border p-2 text-center">Actions</th>
                 </tr>
@@ -218,7 +224,7 @@ const Index = () => {
                 {products.length === 0 && (
                   <tr>
                     <td
-                      colSpan="6"
+                      colSpan="7"
                       className="border p-4 text-center"
                     >
                       No products found.
@@ -241,6 +247,7 @@ const Index = () => {
                     </td>
                     <td className="border p-2 text-center">{product.name}</td>
                     <td className="border p-2 text-center">{product.slug}</td>
+                    <td className="border p-2 text-center">{product.price}</td>
                     <td className="border p-2 text-center">
                       {product.status === 1 ? "Active" : "Inactive"}
                     </td>
@@ -289,6 +296,21 @@ const Index = () => {
                   id="name"
                   name="name"
                   value={formData.name}
+                  onChange={handleInputChange}
+                  required
+                  className="border p-2 w-full rounded"
+                />
+              </div>
+              <div className="mb-3">
+                <label htmlFor="price" className="block mb-1">
+                  Price:
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  id="price"
+                  name="price"
+                  value={formData.price}
                   onChange={handleInputChange}
                   required
                   className="border p-2 w-full rounded"
