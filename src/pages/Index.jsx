@@ -3,6 +3,7 @@ import axios from "axios";
 import { getdata, deletedata, getcategories } from "../Axios/AxiosCall";
 
 const Index = () => {
+  // State
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -51,6 +52,7 @@ const Index = () => {
     loadData();
   }, []);
 
+  // Modal handlers
   const openAddModal = () => {
     setFormData({
       id: null,
@@ -90,6 +92,7 @@ const Index = () => {
     setPreview(null);
   };
 
+  // Form handlers
   const handleInputChange = (e) => {
     const { name, value, type, checked, files } = e.target;
     if (type === "checkbox") {
@@ -165,6 +168,7 @@ const Index = () => {
     }
   };
 
+  // Delete handler
   const handleDelete = async (slug) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
@@ -181,6 +185,7 @@ const Index = () => {
     }
   };
 
+  // Render
   return (
     <div className="flex justify-center bg-white">
       <div className="w-full max-w-300 p-6">
@@ -193,6 +198,7 @@ const Index = () => {
             Add New Product
           </button>
         </div>
+        {/* Table */}
         {loading ? (
           <p className="text-center">Loading products...</p>
         ) : (
@@ -259,6 +265,7 @@ const Index = () => {
           </div>
         )}
       </div>
+      {/* Modal */}
       {modalOpen && (
         <div
           className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50"
@@ -271,6 +278,7 @@ const Index = () => {
             <h2 className="text-xl font-semibold mb-4 text-center">
               {formData.id === null ? "Add New Product" : "Edit Product"}
             </h2>
+            {/* Form */}
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <label htmlFor="name" className="block mb-1">
