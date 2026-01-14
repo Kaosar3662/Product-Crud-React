@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import Richeditor from "../Components/Lexical";
 import { getdata, deletedata, getcategories } from "../Axios/AxiosCall";
 
 const Index = () => {
@@ -15,6 +16,7 @@ const Index = () => {
     status: false,
     thumbnail: null,
     price: "",
+    description: "", // added
   });
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -63,6 +65,7 @@ const Index = () => {
       status: false,
       thumbnail: null,
       price: "",
+      description: "", // added
     });
     setPreview(null);
     setModalOpen(true);
@@ -77,6 +80,7 @@ const Index = () => {
       status: product.status === 1,
       thumbnail: null,
       price: product.price ?? "",
+      description: product.description ?? "", // added
     });
     setPreview(product.thumbnail ? 'http://127.0.0.1:8000/storage/' + product.thumbnail : null);
     setModalOpen(true);
@@ -92,6 +96,7 @@ const Index = () => {
       status: false,
       thumbnail: null,
       price: "",
+      description: "", // added
     });
     setPreview(null);
   };
@@ -133,6 +138,7 @@ const Index = () => {
     formPayload.append("category_id", formData.category_id);
     formPayload.append("status", formData.status ? 1 : 0);
     formPayload.append("price", formData.price);
+    formPayload.append("description", formData.description); // added
     if (formData.thumbnail) {
       formPayload.append("thumbnail", formData.thumbnail);
     }
@@ -372,6 +378,13 @@ const Index = () => {
                     className="mt-2 mx-auto"
                   />
                 )}
+              </div>
+              <div className="mb-3">
+                <label className="block mb-1">Description:</label>
+                <Richeditor
+                  value={formData.description}
+                  onChange={(desc) => setFormData({ ...formData, description: desc })}
+                />
               </div>
               <div className="flex justify-end space-x-2 mt-4">
                 <button

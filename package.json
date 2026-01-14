@@ -10,8 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@lexical/list": "^0.39.0",
+    "@lexical/react": "^0.39.0",
+    "@lexical/rich-text": "^0.39.0",
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.2",
+    "lexical": "^0.39.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "tailwindcss": "^4.1.18"
