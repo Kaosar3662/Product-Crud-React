@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Richeditor from "../Components/Lexical";
 import { getdata, deletedata, getcategories } from "../Axios/AxiosCall";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   // State
@@ -251,7 +252,11 @@ const Index = () => {
                         />
                       ) : null}
                     </td>
-                    <td className="border p-2 text-center">{product.name}</td>
+                    <td className="border p-2 text-center">
+                      <Link to={`/products/${product.slug}`}>
+                        {product.name}
+                      </Link>
+                    </td>
                     <td className="border p-2 text-center">{product.slug}</td>
                     <td className="border p-2 text-center">{product.price}</td>
                     <td className="border p-2 text-center">

@@ -1,7 +1,19 @@
-import { createRoot } from 'react-dom/client'
 import './index.css'
-import App from './pages/Index'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import Details from './pages/Details'
+import Main from './pages/Index'
+import { createRoot } from 'react-dom/client'
 
-createRoot(document.getElementById('root')).render(
-    <App />
-)
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Main />} />
+        <Route path="/products/:slug" element={<Details />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+const root = createRoot(document.getElementById('root'));
+root.render(<App />);
