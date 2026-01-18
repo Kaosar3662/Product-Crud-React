@@ -20,7 +20,6 @@ const Details = () => {
 
         const data = await res.json();
         setProduct(data);
-        console.log(data.description);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -40,7 +39,7 @@ const Details = () => {
         {/* Thumbnail */}
         <div style={{ flex: '0 0 350px' }}>
           <img
-            src={`http://127.0.0.1:8000/storage/${product.thumbnail}`}
+            src={`${product.thumbnail}`}
             alt={product.name}
             style={{
               width: '100%',

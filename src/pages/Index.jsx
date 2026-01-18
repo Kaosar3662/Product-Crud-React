@@ -5,7 +5,6 @@ import { getdata, deletedata, getcategories } from "../Axios/AxiosCall";
 import { Link } from "react-router-dom";
 
 const Index = () => {
-  // State
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -17,12 +16,12 @@ const Index = () => {
     status: false,
     thumbnail: null,
     price: "",
-    description: "", // added
+    description: "",
   });
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [editorUpdateTrigger, setEditorUpdateTrigger] = useState(0);
 
-  // Fetch products
   const fetchProducts = async () => {
     setLoading(true);
     try {
@@ -36,7 +35,6 @@ const Index = () => {
     setLoading(false);
   };
 
-  // Fetch categories
   const fetchCategories = async () => {
     try {
       const res = await getcategories();
@@ -56,7 +54,6 @@ const Index = () => {
     loadData();
   }, []);
 
-  // Modal handlers
   const openAddModal = () => {
     setFormData({
       id: null,
@@ -66,7 +63,7 @@ const Index = () => {
       status: false,
       thumbnail: null,
       price: "",
-      description: "", // added
+      description: "",
     });
     setPreview(null);
     setModalOpen(true);
@@ -81,9 +78,10 @@ const Index = () => {
       status: product.status === 1,
       thumbnail: null,
       price: product.price ?? "",
-      description: product.description ?? "", // added
+      description: product.description ?? "",
     });
     setPreview(product.thumbnail ? 'http://127.0.0.1:8000/storage/' + product.thumbnail : null);
+    setEditorUpdateTrigger(prev => prev + 1); // trigger editor update
     setModalOpen(true);
   };
 
@@ -97,12 +95,11 @@ const Index = () => {
       status: false,
       thumbnail: null,
       price: "",
-      description: "", // added
+      description: "",
     });
     setPreview(null);
   };
 
-  // Form handlers
   const handleInputChange = (e) => {
     const { name, value, type, checked, files } = e.target;
     if (type === "checkbox") {
@@ -139,7 +136,7 @@ const Index = () => {
     formPayload.append("category_id", formData.category_id);
     formPayload.append("status", formData.status ? 1 : 0);
     formPayload.append("price", formData.price);
-    formPayload.append("description", formData.description); // added
+    formPayload.append("description", formData.description); // send HTML directly
     if (formData.thumbnail) {
       formPayload.append("thumbnail", formData.thumbnail);
     }
@@ -180,7 +177,6 @@ const Index = () => {
     }
   };
 
-  // Delete handler
   const handleDelete = async (slug) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
@@ -197,7 +193,6 @@ const Index = () => {
     }
   };
 
-  // Render
   return (
     <div className="flex justify-center bg-white">
       <div className="w-full max-w-300 p-6">
@@ -210,7 +205,6 @@ const Index = () => {
             Add New Product
           </button>
         </div>
-        {/* Table */}
         {loading ? (
           <p className="text-center">Loading products...</p>
         ) : (
@@ -283,11 +277,9 @@ const Index = () => {
           </div>
         )}
       </div>
-      {/* Modal */}
       {modalOpen && (
         <div
           className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50"
-          onClick={closeModal}
         >
           <div
             className="bg-white p-6 rounded shadow-lg min-w-[320px] max-w-full"
@@ -296,8 +288,12 @@ const Index = () => {
             <h2 className="text-xl font-semibold mb-4 text-center">
               {formData.id === null ? "Add New Product" : "Edit Product"}
             </h2>
-            {/* Form */}
-            <form onSubmit={handleSubmit}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmit(e);
+              }}
+            >
               <div className="mb-3">
                 <label htmlFor="name" className="block mb-1">
                   Name:
@@ -385,10 +381,11 @@ const Index = () => {
                 )}
               </div>
               <div className="mb-3">
-                <label className="block mb-1">Description:</label>
+                <div className="block mb-1">Description:</div>
                 <Richeditor
                   value={formData.description}
                   onChange={(desc) => setFormData({ ...formData, description: desc })}
+                  updateTrigger={editorUpdateTrigger}
                 />
               </div>
               <div className="flex justify-end space-x-2 mt-4">
