@@ -1,414 +1,208 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import Richeditor from "../Components/Lexical";
-import { getdata, deletedata, getcategories } from "../Axios/AxiosCall";
-import { Link } from "react-router-dom";
+/* eslint-disable no-unused-vars */
+import React, { useState, useEffect, useRef } from 'react';
+import ProductModal from '../Components/products/ProductModal';
+import ProductTable from '../Components/products/ProductTable';
+import Pagination from '../Components/Pagination';
+import Search from '../Components/Search';
+import ProductService from '../Axios/AxiosCall';
 
-const Index = () => {
+const PAGE_SIZE = 4;
+
+const defaultFormData = {
+  name: '',
+  price: '',
+  category_id: '',
+  status: true,
+  description: '',
+  thumbnail: null,
+  slug: '',
+};
+
+const AllProducts = () => {
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    id: null,
-    slug: "",
-    name: "",
-    category_id: "",
-    status: false,
-    thumbnail: null,
-    price: "",
-    description: "",
-  });
-  const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [formData, setFormData] = useState(defaultFormData);
+  const [categories, setCategories] = useState([]);
+  const [preview, setPreview] = useState(null);
   const [editorUpdateTrigger, setEditorUpdateTrigger] = useState(0);
+  const isMounted = useRef(true);
 
-  const fetchProducts = async () => {
-    setLoading(true);
-    try {
-      const res = await getdata("/api/products");
-      if (res.status === 200) {
-        setProducts(res.data);
-      }
-    } catch {
-      alert("Failed to fetch products");
-    }
-    setLoading(false);
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const res = await getcategories();
-      if (res.status === 200) {
-        setCategories(res.data.data);
-      }
-    } catch {
-      alert("Failed to fetch categories");
-    }
-  };
-
+  // Fetch categories
   useEffect(() => {
-    const loadData = async () => {
-      await fetchProducts();
-      await fetchCategories();
-    };
-    loadData();
+    isMounted.current = true;
+    ProductService.getCategories()
+      .then((data) => {
+        if (isMounted.current) setCategories(data.data || []);
+      })
+      .catch(() => {});
+    return () => { isMounted.current = false; };
   }, []);
 
-  const openAddModal = () => {
-    setFormData({
-      id: null,
-      slug: "",
-      name: "",
-      category_id: "",
-      status: false,
-      thumbnail: null,
-      price: "",
-      description: "",
-    });
+  // Fetch products when page, search changes
+  useEffect(() => {
+    let canceled = false;
+    setLoading(true);
+    const offset = (currentPage - 1) * PAGE_SIZE;
+    ProductService.getAllProducts({
+      search: searchTerm,
+      limit: PAGE_SIZE,
+      offset,
+    })
+      .then((data) => {
+        if (canceled) return;
+         setProducts(data.products || []);
+         setTotalPages(Math.ceil(data.total / PAGE_SIZE) || 1);
+      })
+      .catch(() => {
+        if (!canceled) setProducts([]);
+      })
+      .finally(() => {
+        if (!canceled) setLoading(false);
+      });
+    return () => { canceled = true; };
+  }, [currentPage, searchTerm]);
+
+  // All function
+  const handleAdd = () => {
+    setEditingProduct(null);
+    setFormData({ ...defaultFormData, status: true });
     setPreview(null);
+    setEditorUpdateTrigger((t) => t + 1);
     setModalOpen(true);
   };
 
-  const openEditModal = (product) => {
+  const handleEdit = (product) => {
+    setEditingProduct(product);
     setFormData({
-      id: product.id,
-      slug: product.slug,
-      name: product.name,
-      category_id: product.category_id || "",
-      status: product.status === 1,
+      name: product.name || '',
+      price: product.price || '',
+      category_id: product.category_id || '',
+      status: product.status === 1 || product.status === true,
+      description: product.description || '',
       thumbnail: null,
-      price: product.price ?? "",
-      description: product.description ?? "",
+      slug: product.slug || '',
     });
-    setPreview(product.thumbnail ? 'http://127.0.0.1:8000/storage/' + product.thumbnail : null);
-    setEditorUpdateTrigger(prev => prev + 1); // trigger editor update
+    // Thumbnail
+    setPreview(product.thumbnail
+      ? `http://127.0.0.1:8000/storage/${product.thumbnail}`
+      : null
+    );
+    setEditorUpdateTrigger((t) => t + 1);
     setModalOpen(true);
   };
 
-  const closeModal = () => {
+  const handleDelete = (slug) => {
+    if (!window.confirm('Are you sure you want to delete this product?')) return;
+    setLoading(true);
+    ProductService.deleteProduct(slug)
+      .then(() => {
+        // Refetch products
+        const offset = (currentPage - 1) * PAGE_SIZE;
+        return ProductService.getAllProducts({
+          search: searchTerm,
+          limit: PAGE_SIZE,
+          offset,
+        });
+      })
+      .then((data) => {
+         setProducts(data.products || []);
+         setTotalPages(Math.ceil(data.total / PAGE_SIZE) || 1);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  const handleModalClose = () => {
     setModalOpen(false);
-    setFormData({
-      id: null,
-      slug: "",
-      name: "",
-      category_id: "",
-      status: false,
-      thumbnail: null,
-      price: "",
-      description: "",
-    });
+    setEditingProduct(null);
+    setFormData(defaultFormData);
     setPreview(null);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked, files } = e.target;
-    if (type === "checkbox") {
-      setFormData({ ...formData, [name]: checked });
-    } else if (type === "file") {
-      const file = files[0];
-      setFormData({ ...formData, thumbnail: file });
-      if (file) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setPreview(reader.result);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        setPreview(null);
-      }
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
-  };
-
-  const handleSubmit = async (e) => {
+  const handleModalSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim()) {
-      alert("Name is required");
-      return;
-    }
-    if (!formData.category_id) {
-      alert("Category is required");
-      return;
-    }
-    let formPayload = new FormData();
-    formPayload.append("name", formData.name);
-    formPayload.append("category_id", formData.category_id);
-    formPayload.append("status", formData.status ? 1 : 0);
-    formPayload.append("price", formData.price);
-    formPayload.append("description", formData.description); // send HTML directly
-    if (formData.thumbnail) {
-      formPayload.append("thumbnail", formData.thumbnail);
-    }
-
+    setLoading(true);
     try {
-      if (formData.id === null) {
-        const res = await axios.post("http://127.0.0.1:8000/api/inventory/store", formPayload, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        if (res.status === 201) {
-          alert("Product added successfully");
-          closeModal();
-          fetchProducts();
-        } else {
-          alert("Failed to add product");
-        }
-      } else {
-        const res = await axios.post(`http://127.0.0.1:8000/api/inventory/${formData.slug}/update`, formPayload, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-          params: {
-            _method: 'PUT'
-          }
-        });
-        if (res.status === 200) {
-          alert("Product updated successfully");
-          closeModal();
-          fetchProducts();
-        } else {
-          alert("Failed to update product");
-        }
+      const form = new FormData();
+      form.append('name', formData.name);
+      form.append('price', formData.price);
+      form.append('category_id', formData.category_id);
+      form.append('status', formData.status ? 1 : 0);
+      form.append('description', formData.description);
+      if (formData.thumbnail) {
+        form.append('thumbnail', formData.thumbnail);
       }
-    } catch {
-      alert("Error submitting form");
+      // Update or Create
+      if (formData.slug) {
+        await ProductService.updateProduct(formData.slug, form);
+      } else {
+        await ProductService.createProduct(form);
+      }
+
+      setModalOpen(false);
+      setEditingProduct(null);
+      setFormData(defaultFormData);
+      setPreview(null);
+      // Refetch products
+      const offset = (currentPage - 1) * PAGE_SIZE;
+      const data = await ProductService.getAllProducts({
+        search: searchTerm,
+        limit: PAGE_SIZE,
+        offset,
+      });
+      setProducts(data.products || []);
+      setTotalPages(Math.ceil(data.total / PAGE_SIZE) || 1);
+    } catch (error) {
+      alert('Failed to save product.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDelete = async (slug) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      try {
-        const res = await deletedata(slug);
-        if (res.status === 200) {
-          alert("Product deleted successfully");
-          fetchProducts();
-        } else {
-          alert("Failed to delete product");
-        }
-      } catch {
-        alert("Error deleting product");
-      }
-    }
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   return (
-    <div className="flex justify-center bg-white">
-      <div className="w-full max-w-300 p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">Products</h1>
-          <button
-            className="px-4 py-2 border rounded"
-            onClick={openAddModal}
-          >
-            Add New Product
-          </button>
-        </div>
-        {loading ? (
-          <p className="text-center">Loading products...</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full border border-gray-200">
-              <thead>
-                <tr>
-                  <th className="border p-2 text-center">ID</th>
-                  <th className="border p-2 text-center">Thumbnail</th>
-                  <th className="border p-2 text-center">Name</th>
-                  <th className="border p-2 text-center">Slug</th>
-                  <th className="border p-2 text-center">Price</th>
-                  <th className="border p-2 text-center">Status</th>
-                  <th className="border p-2 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan="7"
-                      className="border p-4 text-center"
-                    >
-                      No products found.
-                    </td>
-                  </tr>
-                )}
-                {products.map((product) => (
-                  <tr key={product.id}>
-                    <td className="border p-2 text-center">{product.id}</td>
-                    <td className="border p-2 text-center">
-                      {product.thumbnail ? (
-                        <img
-                          src={`http://127.0.0.1:8000/storage/${product.thumbnail}`}
-                          alt={product.name}
-                          width="50"
-                          height="50"
-                          className="mx-auto"
-                        />
-                      ) : null}
-                    </td>
-                    <td className="border p-2 text-center">
-                      <Link to={`/products/${product.slug}`}>
-                        {product.name}
-                      </Link>
-                    </td>
-                    <td className="border p-2 text-center">{product.slug}</td>
-                    <td className="border p-2 text-center">{product.price}</td>
-                    <td className="border p-2 text-center">
-                      {product.status === 1 ? "Active" : "Inactive"}
-                    </td>
-                    <td className="border p-2 text-center">
-                      <button
-                        className="px-2 py-1 border rounded mr-2"
-                        onClick={() => openEditModal(product)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="px-2 py-1 border rounded"
-                        onClick={() => handleDelete(product.slug)}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+    <div className="max-w-5xl mx-auto py-8 px-2">
+      <ProductTable
+        products={products}
+        loading={loading}
+        onAdd={handleAdd}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        searchTerm={searchTerm}
+        onSearch={handleSearch}
+      />
+      <div className="my-6 flex justify-center">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
       </div>
-      {modalOpen && (
-        <div
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50"
-        >
-          <div
-            className="bg-white p-6 rounded shadow-lg min-w-[320px] max-w-full"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-xl font-semibold mb-4 text-center">
-              {formData.id === null ? "Add New Product" : "Edit Product"}
-            </h2>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSubmit(e);
-              }}
-            >
-              <div className="mb-3">
-                <label htmlFor="name" className="block mb-1">
-                  Name:
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required
-                  className="border p-2 w-full rounded"
-                />
-              </div>
-              <div className="mb-3">
-                <label htmlFor="price" className="block mb-1">
-                  Price:
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  id="price"
-                  name="price"
-                  value={formData.price}
-                  onChange={handleInputChange}
-                  required
-                  className="border p-2 w-full rounded"
-                />
-              </div>
-              <div className="mb-3">
-                <label htmlFor="category_id" className="block mb-1">
-                  Category:
-                </label>
-                <select
-                  id="category_id"
-                  name="category_id"
-                  value={formData.category_id}
-                  onChange={handleInputChange}
-                  required
-                  className="border p-2 w-full rounded"
-                >
-                  <option value="" disabled>
-                    Select Category
-                  </option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="mb-3 flex items-center">
-                <input
-                  type="checkbox"
-                  id="status"
-                  name="status"
-                  checked={formData.status}
-                  onChange={handleInputChange}
-                  className="mr-2"
-                />
-                <label htmlFor="status" className="mb-0">
-                  Active
-                </label>
-              </div>
-              <div className="mb-3">
-                <label htmlFor="thumbnail" className="block mb-1">
-                  Thumbnail:
-                </label>
-                <input
-                  type="file"
-                  id="thumbnail"
-                  name="thumbnail"
-                  accept="image/*"
-                  onChange={handleInputChange}
-                  className="w-full"
-                />
-                {preview && (
-                  <img
-                    src={preview}
-                    alt="Preview"
-                    width="100"
-                    height="100"
-                    className="mt-2 mx-auto"
-                  />
-                )}
-              </div>
-              <div className="mb-3">
-                <div className="block mb-1">Description:</div>
-                <Richeditor
-                  value={formData.description}
-                  onChange={(desc) => setFormData({ ...formData, description: desc })}
-                  updateTrigger={editorUpdateTrigger}
-                />
-              </div>
-              <div className="flex justify-end space-x-2 mt-4">
-                <button
-                  type="button"
-                  className="px-4 py-2 border rounded"
-                  onClick={closeModal}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 border rounded"
-                >
-                  {formData.id === null ? "Add" : "Update"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <ProductModal
+        open={modalOpen}
+        formData={formData}
+        setFormData={setFormData}
+        categories={categories}
+        preview={preview}
+        setPreview={setPreview}
+        closeModal={handleModalClose}
+        handleSubmit={handleModalSubmit}
+        editorUpdateTrigger={editorUpdateTrigger}
+      />
     </div>
   );
 };
 
-export default Index;
+export default AllProducts;
