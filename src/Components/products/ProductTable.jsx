@@ -16,12 +16,11 @@ const ProductTable = ({
     <div className="overflow-x-auto">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
         <h1 className="text-2xl font-bold">All Products</h1>
-        <div className='max-w=[400px]'>
-
-        <Search searchTerm={searchTerm} onSearch={onSearch} />
+        <div className="max-w=[400px]">
+          <Search searchTerm={searchTerm} onSearch={onSearch} />
         </div>
         <button
-          className="px-4 py-2 border rounded max-w-[300px] w-full sm:w-auto"
+          className="px-4 py-2 border rounded max-w-75 w-full sm:w-auto  bg-black text-white hover:bg-blue-600 cursor-pointer"
           onClick={onAdd}
         >
           Add New Product
@@ -80,13 +79,13 @@ const ProductTable = ({
                   </td>
                   <td className="border p-2 text-center space-x-2">
                     <button
-                      className="px-2 py-1 border rounded"
+                      className="px-2 py-1 border rounded bg-black text-white hover:bg-blue-600 transition-colors cursor-pointer"
                       onClick={() => onEdit(product)}
                     >
                       Edit
                     </button>
                     <button
-                      className="px-2 py-1 border rounded"
+                      className="px-2 py-1 border rounded bg-black text-white hover:bg-blue-600 transition-colors cursor-pointer"
                       onClick={() => onDelete(product.slug)}
                     >
                       Delete

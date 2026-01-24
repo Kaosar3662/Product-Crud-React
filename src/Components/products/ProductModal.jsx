@@ -1,4 +1,5 @@
 import Richeditor from "../Lexical/Lexical";
+import { useEffect } from "react";
 
 const ProductModal = ({
   open,
@@ -11,6 +12,17 @@ const ProductModal = ({
   handleSubmit,
   editorUpdateTrigger,
 }) => {
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
   if (!open) return null;
 
   const handleInputChange = (e) => {
@@ -34,9 +46,13 @@ const ProductModal = ({
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50 p-6 overflow-auto"
+      role="dialog"
+      aria-modal="true"
+    >
       <div
-        className="bg-white p-6 rounded shadow-lg min-w-[320px] max-w-full"
+        className="bg-white p-6 rounded shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto mx-auto"
         onClick={e => e.stopPropagation()}
       >
         <h2 className="text-xl font-semibold mb-4 text-center">
@@ -151,12 +167,15 @@ const ProductModal = ({
           <div className="flex justify-end space-x-2 mt-4">
             <button
               type="button"
-              className="px-4 py-2 border rounded"
+              className="w-full bg-black text-white py-2 rounded hover:bg-blue-600 transition-colors cursor-pointer"
               onClick={closeModal}
             >
               Cancel
             </button>
-            <button type="submit" className="px-4 py-2 border rounded">
+            <button
+              type="submit"
+              className="w-full bg-black text-white py-2 rounded hover:bg-blue-600 transition-colors cursor-pointer"
+            >
               {!formData.slug ? 'Add' : 'Update'}
             </button>
           </div>

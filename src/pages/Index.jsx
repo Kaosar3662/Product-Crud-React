@@ -6,7 +6,7 @@ import Pagination from '../Components/Pagination';
 import Search from '../Components/Search';
 import ProductService from '../Axios/AxiosCall';
 
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 2;
 
 const defaultFormData = {
   name: '',
@@ -53,18 +53,18 @@ const AllProducts = () => {
       limit: PAGE_SIZE,
       offset,
     })
-      .then((data) => {
-        if (canceled) return;
-         setProducts(data.products || []);
-         setTotalPages(Math.ceil(data.total / PAGE_SIZE) || 1);
-      })
-      .catch(() => {
-        if (!canceled) setProducts([]);
-      })
-      .finally(() => {
-        if (!canceled) setLoading(false);
-      });
-    return () => { canceled = true; };
+        .then((data) => {
+          if (canceled) return;
+          setProducts(data.products || []);
+          setTotalPages(Math.ceil(data.total / PAGE_SIZE) || 1);
+        })
+        .catch(() => {
+          if (!canceled) setProducts([]);
+        })
+        .finally(() => {
+          if (!canceled) setLoading(false);
+        });
+      return () => { canceled = true; };
   }, [currentPage, searchTerm]);
 
   // All function
@@ -173,7 +173,7 @@ const AllProducts = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-8 px-2">
+    <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <ProductTable
         products={products}
         loading={loading}
@@ -183,7 +183,8 @@ const AllProducts = () => {
         searchTerm={searchTerm}
         onSearch={handleSearch}
       />
-      <div className="my-6 flex justify-center">
+      <div className="flex my-6 md:justify-between justify-center">
+        <p className="hidden md:flex">Swith Page →</p>
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}

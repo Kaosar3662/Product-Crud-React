@@ -21,23 +21,49 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   };
 
   return (
-    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-      <button onClick={handlePrev} disabled={currentPage === 1}>
+    <div className="flex gap-2 items-center justify-center max-w-full">
+      {/* Prev Button */}
+      <button
+        onClick={handlePrev}
+        disabled={currentPage === 1}
+        className={`px-2 py-1 border rounded transition-colors
+          ${currentPage === 1
+            ? 'bg-gray-300 text-gray-500 opacity-50 cursor-not-allowed'
+            : 'bg-black text-white hover:bg-blue-600 cursor-pointer'
+          }`
+        }
+      >
         Prev
       </button>
-      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+
+      {/* Page Buttons */}
+      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
         <button
           key={page}
           onClick={() => handlePageClick(page)}
-          style={{
-            fontWeight: page === currentPage ? 'bold' : 'normal',
-            textDecoration: page === currentPage ? 'underline' : 'none',
-          }}
+          className={`px-2 py-1 border rounded transition-colors
+            ${page === currentPage
+              ? 'bg-blue-600 text-white font-bold cursor-default'
+              : 'bg-black text-white hover:bg-blue-600 cursor-pointer'
+            }`
+          }
+          disabled={page === currentPage}
         >
           {page}
         </button>
       ))}
-      <button onClick={handleNext} disabled={currentPage === totalPages}>
+
+      {/* Next Button */}
+      <button
+        onClick={handleNext}
+        disabled={currentPage === totalPages}
+        className={`px-2 py-1 border rounded transition-colors
+          ${currentPage === totalPages
+            ? 'bg-gray-300 text-gray-500 opacity-50 cursor-not-allowed'
+            : 'bg-black text-white hover:bg-blue-600 cursor-pointer'
+          }`
+        }
+      >
         Next
       </button>
     </div>
@@ -45,7 +71,3 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 };
 
 export default Pagination;
-
-/* 
-
-*/
