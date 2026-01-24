@@ -1,4 +1,4 @@
-import Richeditor from "../Lexical";
+import Richeditor from "../Lexical/Lexical";
 
 const ProductModal = ({
   open,
