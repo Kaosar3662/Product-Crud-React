@@ -10,18 +10,20 @@ const Details = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(
-          `http://127.0.0.1:8000/api/inventory/${slug}`
-        );
-
-        if (!res.ok) {
+        const authData = JSON.parse(localStorage.getItem('auth'));
+        const token = authData?.token || '';
+        const response = await fetch(`http://127.0.0.1:8000/api/products/${slug}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (!response.ok) {
           throw new Error("Product not found");
         }
-
-        const data = await res.json();
+        const data = await response.json();
         setProduct(data);
       } catch (err) {
-        setError(err.message);
+        setError(err.message || "Product not found");
       } finally {
         setLoading(false);
       }

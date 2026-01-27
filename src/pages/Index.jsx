@@ -4,9 +4,10 @@ import ProductModal from '../Components/products/ProductModal';
 import ProductTable from '../Components/products/ProductTable';
 import Pagination from '../Components/Pagination';
 import Search from '../Components/Search';
-import ProductService from '../Axios/AxiosCall';
+import apiService from '../Axios/AxiosCall';
+import { Link } from 'react-router-dom';
 
-const PAGE_SIZE = 2;
+const ContentPerPage = 2;
 
 const defaultFormData = {
   name: '',
@@ -35,8 +36,9 @@ const AllProducts = () => {
   // Fetch categories
   useEffect(() => {
     isMounted.current = true;
-    ProductService.getCategories()
-      .then((data) => {
+    apiService
+      .getCategories()
+      .then(data => {
         if (isMounted.current) setCategories(data.data || []);
       })
       .catch(() => {});
@@ -47,23 +49,24 @@ const AllProducts = () => {
   useEffect(() => {
     let canceled = false;
     setLoading(true);
-    const offset = (currentPage - 1) * PAGE_SIZE;
-    ProductService.getAllProducts({
-      search: searchTerm,
-      limit: PAGE_SIZE,
-      offset,
-    })
-        .then((data) => {
-          if (canceled) return;
-          setProducts(data.products || []);
-          setTotalPages(Math.ceil(data.total / PAGE_SIZE) || 1);
-        })
-        .catch(() => {
-          if (!canceled) setProducts([]);
-        })
-        .finally(() => {
-          if (!canceled) setLoading(false);
-        });
+    const offset = (currentPage - 1) * ContentPerPage;
+    apiService
+      .getAllProducts({
+        search: searchTerm,
+        limit: ContentPerPage,
+        offset,
+      })
+      .then(data => {
+        if (canceled) return;
+        setProducts(data.products || []);
+        setTotalPages(Math.ceil(data.total / ContentPerPage) || 1);
+      })
+      .catch(() => {
+        if (!canceled) setProducts([]);
+      })
+      .finally(() => {
+        if (!canceled) setLoading(false);
+      });
       return () => { canceled = true; };
   }, [currentPage, searchTerm]);
 
@@ -99,19 +102,20 @@ const AllProducts = () => {
   const handleDelete = (slug) => {
     if (!window.confirm('Are you sure you want to delete this product?')) return;
     setLoading(true);
-    ProductService.deleteProduct(slug)
+    apiService
+      .deleteProduct(slug)
       .then(() => {
         // Refetch products
-        const offset = (currentPage - 1) * PAGE_SIZE;
-        return ProductService.getAllProducts({
+        const offset = (currentPage - 1) * ContentPerPage;
+        return apiService.getAllProducts({
           search: searchTerm,
-          limit: PAGE_SIZE,
+          limit: ContentPerPage,
           offset,
         });
       })
-      .then((data) => {
-         setProducts(data.products || []);
-         setTotalPages(Math.ceil(data.total / PAGE_SIZE) || 1);
+      .then(data => {
+        setProducts(data.products || []);
+        setTotalPages(Math.ceil(data.total / ContentPerPage) || 1);
       })
       .finally(() => setLoading(false));
   };
@@ -138,9 +142,9 @@ const AllProducts = () => {
       }
       // Update or Create
       if (formData.slug) {
-        await ProductService.updateProduct(formData.slug, form);
+        await apiService.updateProduct(formData.slug, form);
       } else {
-        await ProductService.createProduct(form);
+        await apiService.createProduct(form);
       }
 
       setModalOpen(false);
@@ -148,14 +152,14 @@ const AllProducts = () => {
       setFormData(defaultFormData);
       setPreview(null);
       // Refetch products
-      const offset = (currentPage - 1) * PAGE_SIZE;
-      const data = await ProductService.getAllProducts({
+      const offset = (currentPage - 1) * ContentPerPage;
+      const data = await apiService.getAllProducts({
         search: searchTerm,
-        limit: PAGE_SIZE,
+        limit: ContentPerPage,
         offset,
       });
       setProducts(data.products || []);
-      setTotalPages(Math.ceil(data.total / PAGE_SIZE) || 1);
+      setTotalPages(Math.ceil(data.total / ContentPerPage) || 1);
     } catch (error) {
       alert('Failed to save product.');
     } finally {
@@ -172,37 +176,61 @@ const AllProducts = () => {
     setCurrentPage(page);
   };
 
+  const authToken = localStorage.getItem('auth');
+
   return (
-    <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      <ProductTable
-        products={products}
-        loading={loading}
-        onAdd={handleAdd}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        searchTerm={searchTerm}
-        onSearch={handleSearch}
-      />
-      <div className="flex my-6 md:justify-between justify-center">
-        <p className="hidden md:flex">Swith Page →</p>
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-        />
-      </div>
-      <ProductModal
-        open={modalOpen}
-        formData={formData}
-        setFormData={setFormData}
-        categories={categories}
-        preview={preview}
-        setPreview={setPreview}
-        closeModal={handleModalClose}
-        handleSubmit={handleModalSubmit}
-        editorUpdateTrigger={editorUpdateTrigger}
-      />
-    </div>
+    <>
+      {authToken ? (
+        <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+          <ProductTable
+            products={products}
+            loading={loading}
+            onAdd={handleAdd}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            searchTerm={searchTerm}
+            onSearch={handleSearch}
+          />
+          <div className="flex my-6 md:justify-between justify-center">
+            <p className="hidden md:flex">@kaosar 2026</p>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          </div>
+          <ProductModal
+            open={modalOpen}
+            formData={formData}
+            setFormData={setFormData}
+            categories={categories}
+            preview={preview}
+            setPreview={setPreview}
+            closeModal={handleModalClose}
+            handleSubmit={handleModalSubmit}
+            editorUpdateTrigger={editorUpdateTrigger}
+          />
+        </div>
+      ) : (
+        <div className="flex justify-center items-center min-h-screen bg-white">
+          <div
+            className="p-8 rounded-lg border border-black w-full max-w-3xl text-center"
+            style={{ maxWidth: '800px' }}
+          >
+            <h1 className="text-3xl font-bold mb-4">Access Denied</h1>
+            <p className="mb-6 text-gray-700">
+              You must be logged in to access this page.
+            </p>
+            <Link
+              to="/login"
+              className="inline-block bg-black text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+            >
+              Go to Login
+            </Link>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

@@ -7,7 +7,7 @@ const Forget = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // TODO: Add forget password request logic here
+    //Add forget password request logic here
   };
 
   return (

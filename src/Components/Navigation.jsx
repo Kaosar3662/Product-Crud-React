@@ -7,11 +7,28 @@ const Navigation = () => {
 
   const toggleMenu = () => setMenuOpen(prev => !prev);
 
-  const links = [
-    { name: 'Products', path: '/' },
-    { name: 'Register', path: '/register' },
-    { name: 'Login', path: '/login' },
-  ];
+  const token = localStorage.getItem('auth');
+
+  const links = token
+    ? [
+        { name: 'Products', path: '/' },
+        { name: 'Logout', path: '/logout' },
+      ]
+    : [
+        { name: 'Products', path: '/' },
+        { name: 'Register', path: '/register' },
+        { name: 'Login', path: '/login' },
+      ];
+
+  const handleLinkClick = (link) => {
+    if (link.name === 'Logout') {
+      localStorage.clear();
+      setMenuOpen(false);
+      window.location.reload();
+    } else {
+      setMenuOpen(false);
+    }
+  };
 
   return (
     <>
@@ -32,6 +49,7 @@ const Navigation = () => {
                   key={link.name}
                   to={link.path}
                   className="text-white hover:text-blue-500 transition-colors"
+                  onClick={() => handleLinkClick(link)}
                 >
                   {link.name}
                 </Link>
@@ -55,7 +73,7 @@ const Navigation = () => {
                 key={link.name}
                 to={link.path}
                 className="block px-3 py-2 rounded text-white-700 hover:text-blue-500 transition-colors"
-                onClick={() => setMenuOpen(false)}
+                onClick={() => handleLinkClick(link)}
               >
                 {link.name}
               </Link>

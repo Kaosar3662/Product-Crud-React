@@ -1,6 +1,9 @@
 import React from 'react';
 
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+  if (currentPage === totalPages) {
+    return;
+  };
 
   const handlePrev = () => {
     if (currentPage > 1) {
@@ -27,11 +30,11 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         onClick={handlePrev}
         disabled={currentPage === 1}
         className={`px-2 py-1 border rounded transition-colors
-          ${currentPage === 1
-            ? 'bg-gray-300 text-gray-500 opacity-50 cursor-not-allowed'
-            : 'bg-black text-white hover:bg-blue-600 cursor-pointer'
-          }`
-        }
+          ${
+            currentPage === 1
+              ? 'bg-gray-300 text-gray-500 opacity-50 cursor-not-allowed'
+              : 'bg-black text-white hover:bg-blue-600 cursor-pointer'
+          }`}
       >
         Prev
       </button>
@@ -41,12 +44,12 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         <button
           key={page}
           onClick={() => handlePageClick(page)}
-          className={`px-2 py-1 border rounded transition-colors
-            ${page === currentPage
-              ? 'bg-blue-600 text-white font-bold cursor-default'
-              : 'bg-black text-white hover:bg-blue-600 cursor-pointer'
-            }`
-          }
+          className={`px-2 py-1 min-w-8.5 border rounded transition-colors
+            ${
+              page === currentPage
+                ? 'bg-blue-600 text-white font-bold cursor-default'
+                : 'bg-black text-white hover:bg-blue-600 cursor-pointer'
+            }`}
           disabled={page === currentPage}
         >
           {page}
@@ -58,11 +61,11 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         onClick={handleNext}
         disabled={currentPage === totalPages}
         className={`px-2 py-1 border rounded transition-colors
-          ${currentPage === totalPages
-            ? 'bg-gray-300 text-gray-500 opacity-50 cursor-not-allowed'
-            : 'bg-black text-white hover:bg-blue-600 cursor-pointer'
-          }`
-        }
+          ${
+            currentPage === totalPages
+              ? 'bg-gray-300 text-gray-500 opacity-50 cursor-not-allowed'
+              : 'bg-black text-white hover:bg-blue-600 cursor-pointer'
+          }`}
       >
         Next
       </button>

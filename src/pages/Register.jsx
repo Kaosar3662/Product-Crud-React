@@ -1,24 +1,45 @@
 import React, { useState } from 'react';
+import apiService from '../Axios/AxiosCall';
+import { Link } from 'react-router-dom';
 
 const Register = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    cpassword: '',
   });
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  const handleChange = (e) => {
+  const handleChange = e => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    // Request logic here
+      await apiService.registerUser(formData);
+      setShowSuccess(true);
   };
+
   return (
     <div className="flex justify-center items-center min-h-[90vh] bg-white px-4 sm:px-6 lg:px-8">
+      {showSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg max-w-md w-full text-center">
+            <h2 className="text-2xl font-bold mb-4">Account Created 🎉</h2>
+            <p className="mb-6 text-green-300">
+              Your account has been created successfully.
+            </p>
+            <Link
+              to="/login"
+              className="inline-block bg-black text-white px-6 py-2 rounded hover:bg-gray-800"
+            >
+              Go to Login
+            </Link>
+          </div>
+        </div>
+      )}
       <form
         onSubmit={handleSubmit}
         className="p-8 rounded-lg border border-black w-full max-w-2xl"
@@ -84,8 +105,8 @@ const Register = () => {
           <input
             type="password"
             id="confirmPassword"
-            name="confirmPassword"
-            value={formData.confirmPassword}
+            name="cpassword"
+            value={formData.cpassword}
             onChange={handleChange}
             placeholder="Confirm Password"
             className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"

@@ -56,9 +56,7 @@ const ProductTable = ({
                       <img
                         src={`http://127.0.0.1:8000/storage/${product.thumbnail}`}
                         alt={product.name}
-                        width="50"
-                        height="50"
-                        className="mx-auto"
+                        className="mx-auto max-h-8"
                       />
                     )}
                   </td>
@@ -72,10 +70,14 @@ const ProductTable = ({
                       ? product.category.name
                       : '-'}
                   </td>
-                  <td className="border p-2 text-center">
+                  <td
+                    className={`border border-black p-2 text-center ${
+                      product.status === 1 || product.status === true ? ' text-green-300' : ' text-red-500'
+                    }`}
+                  >
                     {product.status === 1 || product.status === true
-                      ? 'Active'
-                      : 'Inactive'}
+                      ? 'In-Stock'
+                      : 'Out-of-Stock'}
                   </td>
                   <td className="border p-2 text-center space-x-2">
                     <button
