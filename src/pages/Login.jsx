@@ -31,13 +31,11 @@ const Login = () => {
     const token = response?.data?.token;
 
     if (token) {
-      const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
 
       localStorage.setItem(
         'auth',
         JSON.stringify({
           token,
-          expiresAt,
         }),
       );
       window.location.reload();

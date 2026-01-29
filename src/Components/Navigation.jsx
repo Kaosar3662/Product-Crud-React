@@ -23,7 +23,6 @@ const Navigation = () => {
   const handleLinkClick = (link) => {
     if (link.name === 'Logout') {
       localStorage.clear();
-      setMenuOpen(false);
       window.location.reload();
     } else {
       setMenuOpen(false);
