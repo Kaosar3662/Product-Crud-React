@@ -11,6 +11,7 @@ const api = axios.create({
   baseURL: 'http://127.0.0.1:8000/api',
   headers: {
     Accept: 'application/json',
+    'Content-Type': 'application/json',
   },
 });
 
@@ -111,6 +112,40 @@ const apiService = {
       throw e;
     }
   },
+  
+  // Forgot password
+  forgotPassword: async data => {
+    try {
+      const response = await api.post('/forgot-password', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error sending forgot password request:', error);
+      throw error;
+    }
+  },
+  // Validate reset password token
+  validateResetToken: async data => {
+    try {
+      console.log(data.token, data.email);
+      const response = await api.post('/password-reset/validate', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error validating reset token:', error);
+      throw error;
+    }
+  },
+
+  // Reset password
+  resetPassword: async data => {
+    try {
+      const response = await api.post('/password-reset', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      throw error;
+    }
+  },
+
 };
 
 export default apiService;

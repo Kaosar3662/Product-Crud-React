@@ -8,6 +8,8 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import Forget from './pages/Forget';
 import NotFound from './pages/404';
+import EmailConfirmed from './pages/EmailConfirmed';
+import ResetPassword from './pages/ResetPassword';
 
 
 const router = createBrowserRouter([
@@ -21,6 +23,8 @@ const router = createBrowserRouter([
       { path: '/login', element: <Login /> },
       { path: '/forget-pass', element: <Forget /> },
       { path: '/products/:slug', element: <Details /> },
+      { path: '/email-confirmed', element: <EmailConfirmed /> },
+      { path: '/reset-password', element: <ResetPassword /> },
     ],
   },
 ]);
