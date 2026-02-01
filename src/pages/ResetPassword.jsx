@@ -11,8 +11,8 @@ export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [resetSuccess, setResetSuccess] = useState(false);
-  
-  
+  const [errors, setErrors] = useState({});
+
   useEffect(() => {
     if (!token || !email) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -23,18 +23,30 @@ export default function ResetPassword() {
     .then(() => setValidToken(true))
     .catch(() => setValidToken(false));
   }, [token, email]);
-  
+
+  const validate = () => {
+    const newErrors = {};
+    if (!password.trim()) newErrors.password = "Password is required";
+    else if (password.length < 6) newErrors.password = "Password must be at least 6 characters";
+
+    if (confirmPassword !== password) newErrors.confirmPassword = "Passwords do not match";
+
+    return newErrors;
+  };
+
   function handleSubmit(e) {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      alert("Passwords do not match");
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
+    setErrors({});
     apiService.resetPassword({ email, token, new_password: password, confirm_password: confirmPassword })
     .then(() => setResetSuccess(true))
     .catch(() => alert("Failed to reset password"));
   }
-  
+
 
   if (validToken === false) {
     return (
@@ -52,7 +64,7 @@ export default function ResetPassword() {
       </div>
     );
   }
-  
+
   if (resetSuccess) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-60 flex flex-col justify-center items-center px-6">
@@ -93,6 +105,7 @@ export default function ResetPassword() {
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               minLength={6}
             />
+            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
           </div>
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
@@ -107,6 +120,7 @@ export default function ResetPassword() {
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               minLength={6}
             />
+            {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
           </div>
           <button
             type="submit"

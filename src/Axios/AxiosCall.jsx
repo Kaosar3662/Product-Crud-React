@@ -19,7 +19,6 @@ api.interceptors.request.use(config => {
   const token = getAuthToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
-    console.log(token);
   }
   return config;
 });
@@ -126,7 +125,6 @@ const apiService = {
   // Validate reset password token
   validateResetToken: async data => {
     try {
-      console.log(data.token, data.email);
       const response = await api.post('/password-reset/validate', data);
       return response.data;
     } catch (error) {

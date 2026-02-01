@@ -10,16 +10,34 @@ const Register = () => {
     cpassword: '',
   });
   const [showSuccess, setShowSuccess] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const handleChange = e => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = "Name is required";
+    if (!formData.email.trim()) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Email is invalid";
+    if (!formData.password) newErrors.password = "Password is required";
+    else if (formData.password.length < 6) newErrors.password = "Password must be at least 6 characters";
+    if (formData.cpassword !== formData.password) newErrors.cpassword = "Passwords do not match";
+    return newErrors;
+  };
+
   const handleSubmit = async e => {
     e.preventDefault();
-      await apiService.registerUser(formData);
-      setShowSuccess(true);
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+    setErrors({});
+    await apiService.registerUser(formData);
+    setShowSuccess(true);
   };
 
   return (
@@ -61,6 +79,7 @@ const Register = () => {
             className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
+          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
         </div>
 
         {/* Email */}
@@ -78,6 +97,7 @@ const Register = () => {
             className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
+          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
         </div>
 
         {/* Password */}
@@ -95,6 +115,7 @@ const Register = () => {
             className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
+          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
         </div>
 
         {/* Confirm Password */}
@@ -112,6 +133,7 @@ const Register = () => {
             className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
+          {errors.cpassword && <p className="text-red-500 text-sm mt-1">{errors.cpassword}</p>}
         </div>
 
         {/* Submit button */}

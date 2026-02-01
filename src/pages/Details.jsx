@@ -21,7 +21,7 @@ const Details = () => {
           throw new Error("Product not found");
         }
         const data = await response.json();
-        setProduct(data);
+        setProduct(data.data);
       } catch (err) {
         setError(err.message || "Product not found");
       } finally {

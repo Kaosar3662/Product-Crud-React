@@ -58,8 +58,8 @@ const AllProducts = () => {
       })
       .then(data => {
         if (canceled) return;
-        setProducts(data.products || []);
-        setTotalPages(Math.ceil(data.total / ContentPerPage) || 1);
+        setProducts(data.data.products || []);
+        setTotalPages(Math.ceil(data.data.total / ContentPerPage) || 1);
       })
       .catch(() => {
         if (!canceled) setProducts([]);
@@ -114,7 +114,7 @@ const AllProducts = () => {
         });
       })
       .then(data => {
-        setProducts(data.products || []);
+        setProducts(data.data.products || []);
         setTotalPages(Math.ceil(data.total / ContentPerPage) || 1);
       })
       .finally(() => setLoading(false));
@@ -158,8 +158,8 @@ const AllProducts = () => {
         limit: ContentPerPage,
         offset,
       });
-      setProducts(data.products || []);
-      setTotalPages(Math.ceil(data.total / ContentPerPage) || 1);
+      setProducts(data.data.products || []);
+      setTotalPages(Math.ceil(data.data.total / ContentPerPage) || 1);
     } catch (error) {
       alert('Failed to save product.');
     } finally {

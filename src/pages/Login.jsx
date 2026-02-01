@@ -8,6 +8,7 @@ const Login = () => {
     password: '',
   });
   const [showSuccess, setShowSuccess] = useState(false);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     const auth = localStorage.getItem('auth');
@@ -17,6 +18,17 @@ const Login = () => {
     }
   }, []);
 
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.email.trim()) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Email is invalid";
+
+    if (!formData.password) newErrors.password = "Password is required";
+    else if (formData.password.length < 6) newErrors.password = "Password must be at least 6 characters";
+
+    return newErrors;
+  };
+
   const handleChange = e => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -24,7 +36,12 @@ const Login = () => {
 
   const handleSubmit = async e => {
     e.preventDefault();
-
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+    setErrors({});
     const response = await apiService.loginUser(formData);
 
     // assuming axios response structure
@@ -40,6 +57,8 @@ const Login = () => {
       );
       window.location.reload();
       setShowSuccess(true);
+    } else if (response?.data?.errors) {
+      setErrors(response.data.errors);
     }
   };
 
@@ -83,6 +102,7 @@ const Login = () => {
             className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
+          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
         </div>
 
         {/* Password */}
@@ -100,6 +120,7 @@ const Login = () => {
             className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
+          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
         </div>
 
         {/* Forgot password */}

@@ -5,9 +5,23 @@ import apiService from '../Axios/AxiosCall';
 export default function Forget() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const newErrors = {};
+    if (!email.trim()) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Email is invalid";
+    return newErrors;
+  };
 
   const handleSubmit = async e => {
     e.preventDefault();
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+    setErrors({});
     await apiService.forgotPassword({ email });
     setSubmitted(true);
   };
@@ -49,11 +63,12 @@ export default function Forget() {
             required
             value={email}
             onChange={e => setEmail(e.target.value)}
-            className="w-full border border-gray-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded px-3 py-2 mb-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
           <button
             type="submit"
-            className="w-full bg-black text-white py-2 rounded hover:bg-blue-600 transition-colors"
+            className="w-full bg-black text-white py-2 rounded hover:bg-blue-600 transition-colors mt-4"
           >
             Send Reset Link
           </button>
