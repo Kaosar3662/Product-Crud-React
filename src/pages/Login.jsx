@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import apiService from '../Axios/AxiosCall';
+import Loading from '../Components/Loading';
+import Toaster from '../Components/Toaster';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -9,6 +11,8 @@ const Login = () => {
   });
   const [showSuccess, setShowSuccess] = useState(false);
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState({ message: '', type: 'info' });
 
   useEffect(() => {
     const auth = localStorage.getItem('auth');
@@ -42,28 +46,36 @@ const Login = () => {
       return;
     }
     setErrors({});
-    const response = await apiService.loginUser(formData);
+    setLoading(true);
+    try {
+      const response = await apiService.loginUser(formData);
 
-    // assuming axios response structure
-    const token = response?.data?.token;
+      // assuming axios response structure
+      const token = response?.data?.token;
 
-    if (token) {
+      if (token) {
 
-      localStorage.setItem(
-        'auth',
-        JSON.stringify({
-          token,
-        }),
-      );
-      window.location.reload();
-      setShowSuccess(true);
-    } else if (response?.data?.errors) {
-      setErrors(response.data.errors);
+        localStorage.setItem(
+          'auth',
+          JSON.stringify({
+            token,
+          }),
+        );
+        setShowSuccess(true);
+      } else if (response?.data?.errors) {
+        setErrors(response.data.errors);
+      }
+    } catch (error) {
+      setToast({ message: error.response.data.errors.auth || 'Login failed', type: 'error' });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="flex justify-center items-center min-h-[90vh] bg-white px-4 sm:px-6 lg:px-8">
+      <Loading loading={loading} />
+      <Toaster message={toast.message} type={toast.type} />
       {showSuccess && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-lg max-w-md w-full text-center">

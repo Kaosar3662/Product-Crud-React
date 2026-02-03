@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import apiService from '../Axios/AxiosCall';
+import Loading from '../Components/Loading';
+import Toaster from '../Components/Toaster';
 
 export default function Forget() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState({ message: '', type: 'info' });
 
   const validate = () => {
     const newErrors = {};
@@ -22,8 +26,15 @@ export default function Forget() {
       return;
     }
     setErrors({});
-    await apiService.forgotPassword({ email });
-    setSubmitted(true);
+    setLoading(true);
+    try {
+      await apiService.forgotPassword({ email });
+      setSubmitted(true);
+    } catch (error) {
+      setToast({ message: error.response?.data?.message || 'Failed to send reset link', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submitted) {
@@ -48,32 +59,36 @@ export default function Forget() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white px-4">
-      <div className="bg-white border border-black rounded-lg p-8 max-w-md w-full">
-        <h1 className="text-2xl font-semibold mb-6 text-center">
-          Forgot Password
-        </h1>
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="email" className="block text-sm font-medium mb-2">
-            Email Address
-          </label>
-          <input
-            id="email"
-            type="email"
-            required
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            className="w-full border border-gray-300 rounded px-3 py-2 mb-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-          <button
-            type="submit"
-            className="w-full bg-black text-white py-2 rounded hover:bg-blue-600 transition-colors mt-4"
-          >
-            Send Reset Link
-          </button>
-        </form>
+    <>
+      <Loading loading={loading} />
+      <Toaster message={toast.message} type={toast.type} />
+      <div className="min-h-screen flex items-center justify-center bg-white px-4">
+        <div className="bg-white border border-black rounded-lg p-8 max-w-md w-full">
+          <h1 className="text-2xl font-semibold mb-6 text-center">
+            Forgot Password
+          </h1>
+          <form onSubmit={handleSubmit}>
+            <label htmlFor="email" className="block text-sm font-medium mb-2">
+              Email Address
+            </label>
+            <input
+              id="email"
+              type="email"
+              required
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="w-full border border-gray-300 rounded px-3 py-2 mb-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+            <button
+              type="submit"
+              className="w-full bg-black text-white py-2 rounded hover:bg-blue-600 transition-colors mt-4"
+            >
+              Send Reset Link
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

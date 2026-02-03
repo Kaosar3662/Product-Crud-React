@@ -12,8 +12,8 @@ import {
   UNDO_COMMAND,
 } from "lexical";
 import { mergeRegister } from "@lexical/utils";
-import { RICH_TEXT_OPTIONS, RichTextAction, LOW_PRIORIRTY } from "../Constants";
-import { HEADINGS } from "../Constants";
+import { RICH_TEXT_OPTIONS, RichTextAction, LOW_PRIORIRTY } from "./Constants";
+import { HEADINGS } from "./Constants";
 import { $createHeadingNode } from "@lexical/rich-text";
 
 const Toolbar = () => {

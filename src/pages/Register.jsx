@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import apiService from '../Axios/AxiosCall';
 import { Link } from 'react-router-dom';
+import Loading from '../Components/Loading';
+import Toaster from "../Components/Toaster";
+
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +14,8 @@ const Register = () => {
   });
   const [showSuccess, setShowSuccess] = useState(false);
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState({ message: '', type: 'info' });
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -33,15 +38,26 @@ const Register = () => {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
+      setToast({ message: Object.values(validationErrors).join('. '), type: 'error' });
       return;
     }
     setErrors({});
-    await apiService.registerUser(formData);
-    setShowSuccess(true);
+    setToast({ message: '', type: 'info' });
+    setLoading(true);
+    try {
+      await apiService.registerUser(formData);
+      setShowSuccess(true);
+    } catch (error) {
+      setToast({ message: error.response?.data?.errors.email || 'Registration failed', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="flex justify-center items-center min-h-[90vh] bg-white px-4 sm:px-6 lg:px-8">
+      <Loading loading={loading} />
+      {toast.type === 'error' && <Toaster message={toast.message} type={toast.type} />}
       {showSuccess && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-lg max-w-md w-full text-center">
@@ -79,7 +95,9 @@ const Register = () => {
             className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+          {errors.name && (
+            <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+          )}
         </div>
 
         {/* Email */}
@@ -97,7 +115,9 @@ const Register = () => {
             className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
-          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+          {errors.email && (
+            <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+          )}
         </div>
 
         {/* Password */}
@@ -115,7 +135,9 @@ const Register = () => {
             className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
-          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+          {errors.password && (
+            <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+          )}
         </div>
 
         {/* Confirm Password */}
@@ -133,7 +155,9 @@ const Register = () => {
             className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
-          {errors.cpassword && <p className="text-red-500 text-sm mt-1">{errors.cpassword}</p>}
+          {errors.cpassword && (
+            <p className="text-red-500 text-sm mt-1">{errors.cpassword}</p>
+          )}
         </div>
 
         {/* Submit button */}

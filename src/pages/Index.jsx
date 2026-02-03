@@ -6,6 +6,8 @@ import Pagination from '../Components/Pagination';
 import Search from '../Components/Search';
 import apiService from '../Axios/AxiosCall';
 import { Link } from 'react-router-dom';
+import Loading from '../Components/Loading';
+import Toaster from '../Components/Toaster';
 
 const ContentPerPage = 2;
 
@@ -22,6 +24,7 @@ const defaultFormData = {
 const AllProducts = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState({ message: '', type: 'info' });
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -36,38 +39,41 @@ const AllProducts = () => {
   // Fetch categories
   useEffect(() => {
     isMounted.current = true;
-    apiService
-      .getCategories()
-      .then(data => {
+    const fetchCategories = async () => {
+      try {
+        const data = await apiService.getCategories();
         if (isMounted.current) setCategories(data.data || []);
-      })
-      .catch(() => {});
+      } catch (error) {
+        // ignore error
+      }
+    };
+    fetchCategories();
     return () => { isMounted.current = false; };
   }, []);
 
   // Fetch products when page, search changes
   useEffect(() => {
     let canceled = false;
-    setLoading(true);
-    const offset = (currentPage - 1) * ContentPerPage;
-    apiService
-      .getAllProducts({
-        search: searchTerm,
-        limit: ContentPerPage,
-        offset,
-      })
-      .then(data => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const offset = (currentPage - 1) * ContentPerPage;
+        const data = await apiService.getAllProducts({
+          search: searchTerm,
+          limit: ContentPerPage,
+          offset,
+        });
         if (canceled) return;
         setProducts(data.data.products || []);
         setTotalPages(Math.ceil(data.data.total / ContentPerPage) || 1);
-      })
-      .catch(() => {
+      } catch (error) {
         if (!canceled) setProducts([]);
-      })
-      .finally(() => {
+      } finally {
         if (!canceled) setLoading(false);
-      });
-      return () => { canceled = true; };
+      }
+    };
+    fetchProducts();
+    return () => { canceled = true; };
   }, [currentPage, searchTerm]);
 
   // All function
@@ -99,25 +105,26 @@ const AllProducts = () => {
     setModalOpen(true);
   };
 
-  const handleDelete = (slug) => {
+  const handleDelete = async (slug) => {
     if (!window.confirm('Are you sure you want to delete this product?')) return;
     setLoading(true);
-    apiService
-      .deleteProduct(slug)
-      .then(() => {
-        // Refetch products
-        const offset = (currentPage - 1) * ContentPerPage;
-        return apiService.getAllProducts({
-          search: searchTerm,
-          limit: ContentPerPage,
-          offset,
-        });
-      })
-      .then(data => {
-        setProducts(data.data.products || []);
-        setTotalPages(Math.ceil(data.total / ContentPerPage) || 1);
-      })
-      .finally(() => setLoading(false));
+    try {
+      await apiService.deleteProduct(slug);
+      // Refetch products
+      const offset = (currentPage - 1) * ContentPerPage;
+      const data = await apiService.getAllProducts({
+        search: searchTerm,
+        limit: ContentPerPage,
+        offset,
+      });
+      setProducts(data.data.products || []);
+      setTotalPages(Math.ceil(data.data.total / ContentPerPage) || 1);
+      setToast({ message: 'Product deleted successfully.', type: 'error' });
+    } catch (error) {
+      setToast({ message: 'Failed to delete product.', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleModalClose = () => {
@@ -143,8 +150,10 @@ const AllProducts = () => {
       // Update or Create
       if (formData.slug) {
         await apiService.updateProduct(formData.slug, form);
+        setToast({ message: 'Product updated successfully.', type: 'success' });
       } else {
         await apiService.createProduct(form);
+        setToast({ message: 'Product created successfully.', type: 'success' });
       }
 
       setModalOpen(false);
@@ -161,7 +170,7 @@ const AllProducts = () => {
       setProducts(data.data.products || []);
       setTotalPages(Math.ceil(data.data.total / ContentPerPage) || 1);
     } catch (error) {
-      alert('Failed to save product.');
+      setToast({ message: 'Failed to save product.', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -180,6 +189,8 @@ const AllProducts = () => {
 
   return (
     <>
+      <Loading loading={loading} />
+      <Toaster message={toast.message} type={toast.type} />
       {authToken ? (
         <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
           <ProductTable

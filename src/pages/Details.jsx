@@ -1,3 +1,4 @@
+import Loading from '../Components/Loading';
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
@@ -32,7 +33,7 @@ const Details = () => {
     fetchProduct();
   }, [slug]);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <Loading loading={loading} />;
   if (error) return <p>{error}</p>;
 
   return (
