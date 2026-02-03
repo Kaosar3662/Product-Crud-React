@@ -17,7 +17,6 @@ const Login = () => {
   useEffect(() => {
     const auth = localStorage.getItem('auth');
     if (auth) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowSuccess(true);
     }
   }, []);

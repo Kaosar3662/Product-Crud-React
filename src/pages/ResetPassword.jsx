@@ -19,7 +19,6 @@ export default function ResetPassword() {
 
   useEffect(() => {
     if (!token || !email) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setValidToken(false);
       return;
     }
