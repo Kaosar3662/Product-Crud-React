@@ -1,39 +1,25 @@
-import Loading from '../Components/Loading';
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import apiService from '../Axios/AxiosCall';
 
 const Details = () => {
   const { slug } = useParams();
   const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const authData = JSON.parse(localStorage.getItem('auth'));
-        const token = authData?.token || '';
-        const response = await fetch(`http://127.0.0.1:8000/api/products/${slug}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        if (!response.ok) {
-          throw new Error("Product not found");
-        }
-        const data = await response.json();
-        setProduct(data.data);
+        const response = await apiService.request('get', `/products/${slug}`);
+        setProduct(response.data);
       } catch (err) {
         setError(err.message || "Product not found");
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchProduct();
   }, [slug]);
 
-  if (loading) return <Loading loading={loading} />;
   if (error) return <p>{error}</p>;
 
   return (

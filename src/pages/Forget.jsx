@@ -1,15 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import apiService from '../Axios/AxiosCall';
-import Loading from '../Components/Loading';
-import Toaster from '../Components/Toaster';
 
 export default function Forget() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState({ message: '', type: 'info' });
 
   const validate = () => {
     const newErrors = {};
@@ -26,15 +22,8 @@ export default function Forget() {
       return;
     }
     setErrors({});
-    setLoading(true);
-    try {
-      await apiService.forgotPassword({ email });
-      setSubmitted(true);
-    } catch (error) {
-      setToast({ message: error.response?.data?.message || 'Failed to send reset link', type: 'error' });
-    } finally {
-      setLoading(false);
-    }
+    await apiService.request('post', '/forgot-password', { email });
+    setSubmitted(true);
   };
 
   if (submitted) {
@@ -60,8 +49,6 @@ export default function Forget() {
 
   return (
     <>
-      <Loading loading={loading} />
-      <Toaster message={toast.message} type={toast.type} />
       <div className="min-h-screen flex items-center justify-center bg-white px-4">
         <div className="bg-white border border-black rounded-lg p-8 max-w-md w-full">
           <h1 className="text-2xl font-semibold mb-6 text-center">

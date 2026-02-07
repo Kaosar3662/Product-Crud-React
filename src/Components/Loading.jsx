@@ -1,4 +1,3 @@
-
 const Loading = ({ loading }) => {
   if (!loading) return null;
 

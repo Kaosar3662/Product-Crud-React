@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import apiService from '../Axios/AxiosCall';
-import Loading from "../Components/Loading";
-import Toaster from "../Components/Toaster";
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -14,15 +12,14 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [resetSuccess, setResetSuccess] = useState(false);
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState({ message: '', type: 'info' });
 
   useEffect(() => {
     if (!token || !email) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setValidToken(false);
       return;
     }
-    apiService.validateResetToken({ email, token })
+    apiService.request('post', '/password-reset/validate', { email, token })
     .then(() => setValidToken(true))
     .catch(() => setValidToken(false));
   }, [token, email]);
@@ -45,22 +42,13 @@ export default function ResetPassword() {
       return;
     }
     setErrors({});
-    setLoading(true);
-    setToast({ message: '', type: 'info' });
-    try {
-      await apiService.resetPassword({ email, token, new_password: password, confirm_password: confirmPassword });
-      setResetSuccess(true);
-    } catch (err) {
-      setToast({
-        message:
-          err?.response?.data?.message ||
-          err?.message ||
-          "Failed to reset password",
-        type: "error"
-      });
-    } finally {
-      setLoading(false);
-    }
+    await apiService.request('post', '/password-reset', {
+      email,
+      token,
+      new_password: password,
+      confirm_password: confirmPassword,
+    });
+    setResetSuccess(true);
   }
 
 
@@ -105,8 +93,6 @@ export default function ResetPassword() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-4">
-      <Loading loading={loading} />
-      <Toaster message={toast.message} type={toast.type} />
       <div className="max-w-md w-full bg-white rounded-xl border border-black p-8">
         <h1 className="text-3xl font-bold mb-6 text-center">Reset Password</h1>
         <form onSubmit={handleSubmit} className="space-y-6">

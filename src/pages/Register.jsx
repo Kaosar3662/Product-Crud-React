@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import apiService from '../Axios/AxiosCall';
 import { Link } from 'react-router-dom';
-import Loading from '../Components/Loading';
-import Toaster from "../Components/Toaster";
 
 
 const Register = () => {
@@ -14,8 +12,7 @@ const Register = () => {
   });
   const [showSuccess, setShowSuccess] = useState(false);
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState({ message: '', type: 'info' });
+  // loading and toast state removed, handled globally now
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -38,26 +35,17 @@ const Register = () => {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      setToast({ message: Object.values(validationErrors).join('. '), type: 'error' });
+      // toast handled globally
       return;
     }
     setErrors({});
-    setToast({ message: '', type: 'info' });
-    setLoading(true);
-    try {
-      await apiService.registerUser(formData);
-      setShowSuccess(true);
-    } catch (error) {
-      setToast({ message: error.response?.data?.errors.email || 'Registration failed', type: 'error' });
-    } finally {
-      setLoading(false);
-    }
+    await apiService.request('post', '/register', formData);
+    setShowSuccess(true);
   };
 
   return (
     <div className="flex justify-center items-center min-h-[90vh] bg-white px-4 sm:px-6 lg:px-8">
-      <Loading loading={loading} />
-      {toast.type === 'error' && <Toaster message={toast.message} type={toast.type} />}
+      {/* Loading and Toaster handled globally */}
       {showSuccess && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-lg max-w-md w-full text-center">

@@ -1,4 +1,56 @@
 import axios from 'axios';
+import { createRoot } from 'react-dom/client';
+import Loading from '../Components/Loading';
+import Toaster from '../Components/Toaster';
+
+let loaderRoot = document.getElementById('loader-root');
+if (!loaderRoot) {
+  loaderRoot = document.createElement('div');
+  loaderRoot.id = 'loader-root';
+  document.body.appendChild(loaderRoot);
+}
+let loaderRootContainer = loaderRoot.__reactRootContainer;
+if (!loaderRootContainer) {
+  loaderRootContainer = createRoot(loaderRoot);
+  loaderRoot.__reactRootContainer = loaderRootContainer;
+}
+
+let toasterRoot = document.getElementById('toaster-root');
+if (!toasterRoot) {
+  toasterRoot = document.createElement('div');
+  toasterRoot.id = 'toaster-root';
+  document.body.appendChild(toasterRoot);
+}
+let toasterRootContainer = toasterRoot.__reactRootContainer;
+if (!toasterRootContainer) {
+  toasterRootContainer = createRoot(toasterRoot);
+  toasterRoot.__reactRootContainer = toasterRootContainer;
+}
+
+let loaderVisible = false;
+let currentToaster = { message: '', type: 'info' };
+
+const showLoader = () => {
+  loaderVisible = true;
+  renderLoader();
+};
+const hideLoader = () => {
+  loaderVisible = false;
+  renderLoader();
+};
+
+const showToaster = (message, type = 'info') => {
+  currentToaster = { message, type };
+  renderToaster();
+};
+
+const renderLoader = () => {
+  loaderRootContainer.render(<Loading loading={loaderVisible} />);
+};
+
+const renderToaster = () => {
+  toasterRootContainer.render(<Toaster message={currentToaster.message} type={currentToaster.type} />);
+};
 
 const getAuthToken = () => {
   const auth = localStorage.getItem('auth');
@@ -9,147 +61,40 @@ const getAuthToken = () => {
 
 const api = axios.create({
   baseURL: 'http://127.0.0.1:8000/api',
-  headers: {
-    Accept: 'application/json',
-  },
+  headers: { Accept: 'application/json' },
 });
 
 api.interceptors.request.use(config => {
   const token = getAuthToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  if (config.data instanceof FormData) {
-    delete config.headers['Content-Type'];
-  } else {
-    config.headers['Content-Type'] = 'application/json';
-  }
-
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (config.data instanceof FormData) delete config.headers['Content-Type'];
+  else config.headers['Content-Type'] = 'application/json';
   return config;
 });
 
 const apiService = {
-  // Fetch all products with optional search, limit, and offset
+  request: async (method, endpoint, data = null) => {
+    showLoader();
+    try {
+      const response = await api({ method, url: endpoint, data });
+      const resData = response.data;
+
+      showToaster(resData.message || '', resData.success ? 'success' : 'error');
+      return resData;
+
+    } catch (e) {
+      if (e.response?.data?.message) {
+        showToaster(e.response.data.message, 'error');
+      }
+      return null;
+    } finally {
+      hideLoader();
+    }
+  },
+
   getAllProducts: async ({ search = '', limit = 10, offset = 0 } = {}) => {
-    try {
-      const response = await api.get('/products/all', {
-        params: { search, limit, offset },
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      throw error;
-    }
+    return await apiService.request('get', '/products/all', { params: { search, limit, offset } });
   },
-
-  // Fetch single product by slug
-  getProduct: async slug => {
-    try {
-      const response = await api.get(`/products/${slug}`);
-      return response.data;
-    } catch (error) {
-      console.error(`Error fetching product ${slug}:`, error);
-      throw error;
-    }
-  },
-
-  // Create new product
-  createProduct: async data => {
-    try {
-      const response = await api.post('/products/store', data);
-      return response.data;
-    } catch (error) {
-      console.error('Error creating product:', error);
-      throw error;
-    }
-  },
-
-  // Update existing product by slug
-  updateProduct: async (slug, data) => {
-    try {
-      const response = await api.post(`/products/${slug}/update`, data);
-      return response.data;
-    } catch (error) {
-      console.error(`Error updating product ${slug}:`, error);
-      throw error;
-    }
-  },
-
-  // Delete product by slug
-  deleteProduct: async slug => {
-    try {
-      const response = await api.delete(`/products/${slug}/delete`);
-      return response.data;
-    } catch (error) {
-      console.error(`Error deleting product ${slug}:`, error);
-      throw error;
-    }
-  },
-
-  // Fetch all categories
-  getCategories: async () => {
-    try {
-      const response = await api.get('/categories');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      throw error;
-    }
-  },
-
-  //  Sign up
-  registerUser: async data => {
-    try {
-      const response = await api.post(`/register`, data);
-      return response.data;
-    } catch (e) {
-      console.error('Error while signing up:', e);
-      throw e;
-    }
-  },
-  loginUser: async data => {
-    try {
-      const response = await api.post(`/login`, data);
-      return response.data;
-    } catch (e) {
-      console.error('Error while Logging in:', e);
-      throw e;
-    }
-  },
-  
-  // Forgot password
-  forgotPassword: async data => {
-    try {
-      const response = await api.post('/forgot-password', data);
-      return response.data;
-    } catch (error) {
-      console.error('Error sending forgot password request:', error);
-      throw error;
-    }
-  },
-  // Validate reset password token
-  validateResetToken: async data => {
-    try {
-      const response = await api.post('/password-reset/validate', data);
-      return response.data;
-    } catch (error) {
-      console.error('Error validating reset token:', error);
-      throw error;
-    }
-  },
-
-  // Reset password
-  resetPassword: async data => {
-    try {
-      const response = await api.post('/password-reset', data);
-      return response.data;
-    } catch (error) {
-      console.error('Error resetting password:', error);
-      throw error;
-    }
-  },
-
 };
 
 export default apiService;
