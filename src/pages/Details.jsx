@@ -21,6 +21,7 @@ const Details = () => {
   }, [slug]);
 
   if (error) return <p>{error}</p>;
+  if (!product) return <p>Loading...</p>;
 
   return (
     <div style={{ padding: '40px', maxWidth: '1000px', margin: '0 auto' }}>
